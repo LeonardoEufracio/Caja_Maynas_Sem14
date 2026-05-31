@@ -1,0 +1,15 @@
+.dashboard-card {
+  border-left: 4px solid var(--horizonte-blue);
+}
+
+.dashboard-card__label {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dashboard-card__value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--horizonte-blue);
+}
