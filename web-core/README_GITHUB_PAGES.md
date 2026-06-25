@@ -7,16 +7,15 @@ El proyecto ya esta preparado para compilarse desde la carpeta `web-core` y publ
 1. En GitHub, entra al repositorio `Caja_Maynas_Sem14`.
 2. Ve a `Settings > Pages`.
 3. En `Build and deployment`, selecciona `GitHub Actions`.
-4. Ve a `Settings > Secrets and variables > Actions > Variables`.
-5. Crea la variable `VITE_BASE_URL` con la URL HTTPS publica del backend `core-api`.
+4. El workflow ya usa por defecto el backend publicado en Railway.
 
-Ejemplo:
+Backend configurado:
 
 ```text
-VITE_BASE_URL=https://tu-backend-publico.com
+https://cajamaynassem14-production.up.railway.app
 ```
 
-No uses `localhost` en GitHub Pages porque el navegador intentaria llamar a la computadora del usuario.
+Opcionalmente puedes crear la variable `VITE_BASE_URL` en `Settings > Secrets and variables > Actions > Variables` si deseas reemplazar el backend sin tocar codigo.
 
 ## Build local para Pages
 
