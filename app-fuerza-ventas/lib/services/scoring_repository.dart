@@ -8,13 +8,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 const configuredCoreBaseUrl = String.fromEnvironment(
   'CORE_BASE_URL',
-  defaultValue: '',
+  defaultValue: 'https://cajamaynassem14-production.up.railway.app',
 );
-const fallbackCoreBaseUrl = 'http://127.0.0.1:8003';
+const fallbackCoreBaseUrl = 'https://cajamaynassem14-production.up.railway.app';
 
 String get coreBaseUrl {
   if (configuredCoreBaseUrl.isNotEmpty) return configuredCoreBaseUrl;
-  return kIsWeb ? fallbackCoreBaseUrl : 'http://10.0.2.2:8003';
+  return fallbackCoreBaseUrl;
 }
 
 class SalesDashboardData {

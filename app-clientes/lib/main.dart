@@ -61,9 +61,9 @@ const demoPassword = '1234';
 const secureStorage = FlutterSecureStorage();
 const coreBaseUrl = String.fromEnvironment(
   'CORE_BASE_URL',
-  defaultValue: 'http://10.0.2.2:8003',
+  defaultValue: 'https://cajamaynassem14-production.up.railway.app',
 );
-const fallbackCoreBaseUrl = 'http://127.0.0.1:8003';
+const fallbackCoreBaseUrl = 'https://cajamaynassem14-production.up.railway.app';
 String get primaryCoreBaseUrl => kIsWeb ? fallbackCoreBaseUrl : coreBaseUrl;
 
 final demoProfile = UserProfile(
