@@ -84,50 +84,59 @@ def resumen_demo_por_documento(db: Session, numero_documento: str) -> dict | Non
     if not cliente:
         return None
 
-    _materializar_productos_demo(db, cliente)
+    try:
+        _materializar_productos_demo(db, cliente)
+    except Exception:
+        db.rollback()
+        return _resumen_demo_basico(cliente)
+
     cliente_id = str(cliente["id"])
-    cuentas = [dict(r) for r in db.execute(
-        text("SELECT * FROM cr_cuentas_ahorro WHERE cliente_id = :id ORDER BY cod_cuenta_ahorro"),
-        {"id": cliente_id},
-    ).mappings().all()]
-    creditos = [dict(r) for r in db.execute(
-        text("SELECT * FROM cr_creditos WHERE cliente_id = :id ORDER BY fecha_desembolso DESC NULLS LAST"),
-        {"id": cliente_id},
-    ).mappings().all()]
-    cronogramas = {}
-    for credito in creditos:
-        cod = credito["cod_cuenta_credito"]
-        cronogramas[cod] = [dict(r) for r in db.execute(
-            text("SELECT * FROM cr_cronograma_pagos WHERE cod_cuenta_credito = :cod ORDER BY nro_cuota"),
-            {"cod": cod},
+    try:
+        cuentas = [dict(r) for r in db.execute(
+            text("SELECT * FROM cr_cuentas_ahorro WHERE cliente_id = :id ORDER BY cod_cuenta_ahorro"),
+            {"id": cliente_id},
         ).mappings().all()]
-    return {
-        "cliente": dict(cliente),
-        "cuentas": cuentas,
-        "creditos": creditos,
-        "cronogramas": cronogramas,
-        "movimientos": [dict(r) for r in db.execute(
-            text("SELECT * FROM cr_movimientos WHERE cliente_id = :id ORDER BY fecha_operacion DESC LIMIT 20"),
+        creditos = [dict(r) for r in db.execute(
+            text("SELECT * FROM cr_creditos WHERE cliente_id = :id ORDER BY fecha_desembolso DESC NULLS LAST"),
             {"id": cliente_id},
-        ).mappings().all()],
-        "tarjetas": [dict(r) for r in db.execute(
-            text("SELECT * FROM tarjetas WHERE cliente_id = :id ORDER BY created_at DESC"),
-            {"id": cliente_id},
-        ).mappings().all()],
-        "notificaciones": [dict(r) for r in db.execute(
-            text("SELECT * FROM notificaciones WHERE cliente_id = :id ORDER BY created_at DESC LIMIT 20"),
-            {"id": cliente_id},
-        ).mappings().all()],
-        "solicitudes": [dict(r) for r in db.execute(
-            text(
-                """SELECT numero_expediente, monto_solicitado, monto_aprobado, estado, created_at
-                   FROM solicitudes_credito
-                   WHERE cliente_id = :id
-                   ORDER BY created_at DESC"""
-            ),
-            {"id": cliente_id},
-        ).mappings().all()],
-    }
+        ).mappings().all()]
+        cronogramas = {}
+        for credito in creditos:
+            cod = credito["cod_cuenta_credito"]
+            cronogramas[cod] = [dict(r) for r in db.execute(
+                text("SELECT * FROM cr_cronograma_pagos WHERE cod_cuenta_credito = :cod ORDER BY nro_cuota"),
+                {"cod": cod},
+            ).mappings().all()]
+        return {
+            "cliente": dict(cliente),
+            "cuentas": cuentas,
+            "creditos": creditos,
+            "cronogramas": cronogramas,
+            "movimientos": [dict(r) for r in db.execute(
+                text("SELECT * FROM cr_movimientos WHERE cliente_id = :id ORDER BY fecha_operacion DESC LIMIT 20"),
+                {"id": cliente_id},
+            ).mappings().all()],
+            "tarjetas": [dict(r) for r in db.execute(
+                text("SELECT * FROM tarjetas WHERE cliente_id = :id ORDER BY created_at DESC"),
+                {"id": cliente_id},
+            ).mappings().all()],
+            "notificaciones": [dict(r) for r in db.execute(
+                text("SELECT * FROM notificaciones WHERE cliente_id = :id ORDER BY created_at DESC LIMIT 20"),
+                {"id": cliente_id},
+            ).mappings().all()],
+            "solicitudes": [dict(r) for r in db.execute(
+                text(
+                    """SELECT numero_expediente, monto_solicitado, monto_aprobado, estado, created_at
+                       FROM solicitudes_credito
+                       WHERE cliente_id = :id
+                       ORDER BY created_at DESC"""
+                ),
+                {"id": cliente_id},
+            ).mappings().all()],
+        }
+    except Exception:
+        db.rollback()
+        return _resumen_demo_basico(cliente)
 
 
 def asegurar_cliente_demo_login(db: Session, numero_documento: str) -> None:
@@ -163,6 +172,38 @@ def asegurar_cliente_demo_login(db: Session, numero_documento: str) -> None:
             {"id": cliente_id},
         ).mappings().first()
 
+    _upsert_usuario_cliente_demo(db, cliente)
+    db.commit()
+
+    try:
+        _asegurar_solicitud_demo(db, cliente)
+        _materializar_productos_demo(db, cliente)
+    except Exception:
+        db.rollback()
+
+
+def _upsert_usuario_cliente_demo(db: Session, cliente) -> None:
+    db.execute(
+        text(
+            """INSERT INTO usuarios_cliente (id, cliente_id, username, password_hash, activo)
+               VALUES (:id, :cliente_id, :username, :password_hash, TRUE)
+               ON CONFLICT (username) DO UPDATE SET
+                   password_hash = EXCLUDED.password_hash,
+                   activo = TRUE,
+                   bloqueado = FALSE,
+                   intentos_fallidos = 0"""
+        ),
+        {
+            "id": str(uuid.uuid4()),
+            "cliente_id": str(cliente["id"]),
+            "username": cliente["numero_documento"],
+            "password_hash": hash_password("1234"),
+        },
+    )
+
+
+def _asegurar_solicitud_demo(db: Session, cliente) -> None:
+    numero_documento = cliente["numero_documento"]
     asesor = db.execute(
         text(
             """SELECT id, agencia_id
@@ -199,29 +240,12 @@ def asegurar_cliente_demo_login(db: Session, numero_documento: str) -> None:
             "cliente_id": str(cliente["id"]),
         },
     )
-    _materializar_productos_demo(db, cliente)
 
 
 def _materializar_productos_demo(db: Session, cliente) -> None:
     cliente_id = str(cliente["id"])
     doc = cliente["numero_documento"]
-    db.execute(
-        text(
-            """INSERT INTO usuarios_cliente (id, cliente_id, username, password_hash, activo)
-               VALUES (:id, :cliente_id, :username, :password_hash, TRUE)
-               ON CONFLICT (username) DO UPDATE SET
-                   password_hash = EXCLUDED.password_hash,
-                   activo = TRUE,
-                   bloqueado = FALSE,
-                   intentos_fallidos = 0"""
-        ),
-        {
-            "id": str(uuid.uuid4()),
-            "cliente_id": cliente_id,
-            "username": doc,
-            "password_hash": hash_password("1234"),
-        },
-    )
+    _upsert_usuario_cliente_demo(db, cliente)
     cuenta = f"AHO-{doc[-4:]}"
     db.execute(
         text(
@@ -360,3 +384,53 @@ def _materializar_productos_demo(db: Session, cliente) -> None:
 
 def json_payload(numero_expediente: str) -> str:
     return '{"numero_expediente":"' + str(numero_expediente) + '"}'
+
+
+def _resumen_demo_basico(cliente) -> dict:
+    doc = cliente["numero_documento"]
+    today = date.today().isoformat()
+    cliente_data = dict(cliente)
+    return {
+        "cliente": cliente_data,
+        "cuentas": [
+            {
+                "cod_cuenta_ahorro": f"AHO-{doc[-4:]}",
+                "tipo_cuenta": "Ahorro Corriente",
+                "saldo_capital": 2500.00,
+                "saldo_interes": 12.50,
+                "cci": f"002-{doc[-4:]}000000000000",
+            }
+        ],
+        "creditos": [
+            {
+                "cod_cuenta_credito": f"CR-DEMO-{doc[-4:]}",
+                "producto": "Microcredito Ahorita",
+                "monto_desembolsado": 2500.00,
+                "saldo_capital": 2500.00,
+                "saldo_total": 3000.00,
+                "tea": 43.92,
+                "estado": "vigente",
+            }
+        ],
+        "cronogramas": {
+            f"CR-DEMO-{doc[-4:]}": [
+                {
+                    "nro_cuota": 1,
+                    "fecha_vencimiento": today,
+                    "monto_cuota": 250.00,
+                    "estado_cuota": "pendiente",
+                }
+            ]
+        },
+        "movimientos": [
+            {
+                "concepto": "Desembolso microcredito Ahorita",
+                "fecha_operacion": today,
+                "monto": 2500.00,
+                "tipo_movimiento": "CRE",
+            }
+        ],
+        "tarjetas": [],
+        "notificaciones": [],
+        "solicitudes": [],
+    }
