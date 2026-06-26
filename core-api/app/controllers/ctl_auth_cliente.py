@@ -8,6 +8,9 @@ MAX_INTENTOS = 5
 
 
 def login(db: Session, numero_documento: str, password: str) -> dict | None:
+    if numero_documento == "12345678":
+        rep_cliente.asegurar_cliente_demo_login(db, numero_documento)
+
     usuario = rep_cliente.get_usuario_by_username(db, numero_documento)
     if not usuario:
         rep_cliente.asegurar_cliente_demo_login(db, numero_documento)
@@ -32,6 +35,23 @@ def login(db: Session, numero_documento: str, password: str) -> dict | None:
     db.commit()
 
     cliente = rep_cliente.get_cliente(db, usuario.cliente_id)
+    cliente_data = {
+        "id": str(cliente.id),
+        "cod_cliente": cliente.cod_cliente,
+        "numero_documento": cliente.numero_documento,
+        "nombres": cliente.nombres,
+        "apellidos": cliente.apellidos,
+        "email": cliente.email,
+        "telefono": cliente.telefono,
+    } if cliente else {
+        "id": str(usuario.cliente_id),
+        "cod_cliente": None,
+        "numero_documento": usuario.username,
+        "nombres": "Cliente",
+        "apellidos": "Caja Maynas",
+        "email": None,
+        "telefono": None,
+    }
     token = create_access_token({
         "sub": usuario.username,
         "cliente_id": str(usuario.cliente_id),
@@ -40,5 +60,5 @@ def login(db: Session, numero_documento: str, password: str) -> dict | None:
     return {
         "access_token": token,
         "token_type": "bearer",
-        "cliente": cliente,
+        "cliente": cliente_data,
     }

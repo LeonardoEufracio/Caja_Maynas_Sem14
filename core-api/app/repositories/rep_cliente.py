@@ -209,13 +209,17 @@ def _materializar_productos_demo(db: Session, cliente) -> None:
         text(
             """INSERT INTO usuarios_cliente (id, cliente_id, username, password_hash, activo)
                VALUES (:id, :cliente_id, :username, :password_hash, TRUE)
-               ON CONFLICT (username) DO NOTHING"""
+               ON CONFLICT (username) DO UPDATE SET
+                   password_hash = EXCLUDED.password_hash,
+                   activo = TRUE,
+                   bloqueado = FALSE,
+                   intentos_fallidos = 0"""
         ),
         {
             "id": str(uuid.uuid4()),
             "cliente_id": cliente_id,
             "username": doc,
-            "password_hash": hash_password("12345"),
+            "password_hash": hash_password("1234"),
         },
     )
     cuenta = f"AHO-{doc[-4:]}"
