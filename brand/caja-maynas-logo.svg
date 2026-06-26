@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Caja Maynas">
-  <rect x="4" y="4" width="40" height="40" rx="10" fill="#e30613"/>
-  <circle cx="24" cy="14" r="3.8" fill="#fff"/>
-  <rect x="12" y="22" width="24" height="14" rx="3" fill="#fff"/>
-  <rect x="18" y="27" width="12" height="4" rx="1" fill="#e30613"/>
-  <rect x="10" y="39" width="28" height="2.2" rx="1" fill="#fff"/>
-</svg>
