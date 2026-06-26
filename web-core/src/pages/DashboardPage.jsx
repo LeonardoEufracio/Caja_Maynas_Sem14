@@ -111,8 +111,8 @@ export default function DashboardPage() {
             <div className="cm-kpi">
               <span className="cm-kpi-ico" style={{ background: '#ffe5e8', color: '#e30613' }}><Server size={24} /></span>
               <div>
-                <div className="cm-kpi-label">Core / API REST</div>
-                <span className="cm-kpi-val">{conexion?.api || '...'}</span>
+                <div className="cm-kpi-label">Backend Railway</div>
+                <span className="cm-kpi-val">{conexion?.api || (casos ? 'ok' : '...')}</span>
                 <small>Verificado {formatDateTime(conexion?.fecha_hora)}</small>
               </div>
             </div>
@@ -120,7 +120,7 @@ export default function DashboardPage() {
               <span className="cm-kpi-ico" style={{ background: '#e6f7f6', color: '#00a9a5' }}><Database size={24} /></span>
               <div>
                 <div className="cm-kpi-label">Base de datos</div>
-                <span className="cm-kpi-val">{conexion?.bd_core_mobile || 'offline'}</span>
+                <span className="cm-kpi-val">{conexion?.bd_core_mobile || 'verificando'}</span>
                 <small>bd_core_mobile + sync_outbox</small>
               </div>
             </div>

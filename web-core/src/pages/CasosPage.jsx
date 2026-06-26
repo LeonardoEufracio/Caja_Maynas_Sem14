@@ -68,8 +68,8 @@ export default function CasosPage() {
         <div className="cm-kpi">
           <span className="cm-kpi-ico" style={{ background: '#ffe5e8', color: '#e30613' }}><Server size={24} /></span>
           <div>
-            <div className="cm-kpi-label">API REST</div>
-            <span className="cm-kpi-val">{conexion?.api || '...'}</span>
+            <div className="cm-kpi-label">Backend Railway</div>
+            <span className="cm-kpi-val">{conexion?.api || (casos.length ? 'ok' : '...')}</span>
             <small>Verificado {formatDateTime(conexion?.fecha_hora)}</small>
           </div>
         </div>
@@ -77,7 +77,7 @@ export default function CasosPage() {
           <span className="cm-kpi-ico" style={{ background: '#e6f7f6', color: '#00a9a5' }}><Database size={24} /></span>
           <div>
             <div className="cm-kpi-label">Base mobile</div>
-            <span className="cm-kpi-val">{conexion?.bd_core_mobile || 'sin conexion'}</span>
+            <span className="cm-kpi-val">{conexion?.bd_core_mobile || 'verificando'}</span>
             <small>PostgreSQL bd_core_mobile</small>
           </div>
         </div>

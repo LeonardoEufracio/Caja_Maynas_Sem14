@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from fastapi import APIRouter, Depends
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from app.core.cfg_database import get_db
@@ -24,10 +25,15 @@ def dashboard_casos():
 @router.get("/conexion")
 def conexion(db: Session = Depends(get_db)):
     """Diagnostico rapido de API REST + PostgreSQL bd_core_mobile."""
-    db.execute(text("SELECT 1")).scalar()
+    bd_estado = "ok"
+    try:
+        db.execute(text("SELECT 1")).scalar()
+    except SQLAlchemyError:
+        bd_estado = "revisar BD"
+
     return {
         "api": "ok",
-        "bd_core_mobile": "ok",
+        "bd_core_mobile": bd_estado,
         "core_financiero": "sync_outbox",
         "marca": "Caja Maynas",
         "fecha_hora": datetime.now().isoformat(timespec="seconds"),
