@@ -114,6 +114,57 @@ final demoProducts = BankProducts(
   ],
 );
 
+Map<String, dynamic> demoCoreSummary(String document) => {
+  'cliente': {
+    'numero_documento': document,
+    'nombres': 'Miguel',
+    'apellidos': 'Ramirez',
+    'email': demoEmail,
+    'telefono': '987 654 321',
+    'direccion': 'Jr. Prospero 791, Iquitos',
+  },
+  'cuentas': [
+    {
+      'cod_cuenta_ahorro': demoProducts.savings.number,
+      'tipo_cuenta': demoProducts.savings.name,
+      'saldo_capital': demoProducts.savings.balance,
+      'saldo_interes': 0,
+      'cci': demoProducts.savings.cci,
+    },
+  ],
+  'creditos': [
+    {
+      'cod_cuenta_credito': demoProducts.credit.number,
+      'producto': demoProducts.credit.name,
+      'monto_desembolsado': demoProducts.credit.principal,
+      'saldo_capital': demoProducts.credit.pending,
+      'tea': 38.5,
+    },
+  ],
+  'cronogramas': {
+    demoProducts.credit.number: demoProducts.credit.installments
+        .map(
+          (item) => {
+            'nro_cuota': item.number,
+            'fecha_vencimiento': item.date,
+            'monto_cuota': item.amount,
+            'estado_cuota': item.status,
+          },
+        )
+        .toList(),
+  },
+  'movimientos': demoProducts.movements
+      .map(
+        (item) => {
+          'concepto': item.title,
+          'fecha_operacion': item.date,
+          'monto': item.amount,
+          'tipo_movimiento': item.isIncome ? 'CRE' : 'DEB',
+        },
+      )
+      .toList(),
+};
+
 class UserProfile {
   const UserProfile({
     required this.name,
@@ -580,6 +631,17 @@ class _LoginPageState extends State<LoginPage> {
       _openSession(token: token, document: document, summary: summary);
     } catch (error) {
       if (!mounted) return;
+      if (document == demoDni && password == demoPassword) {
+        const token = 'demo-cajamaynas';
+        await secureStorage.write(key: 'cliente_token', value: token);
+        await secureStorage.write(key: 'cliente_documento', value: document);
+        _openSession(
+          token: token,
+          document: document,
+          summary: demoCoreSummary(document),
+        );
+        return;
+      }
       showMessage('No se pudo ingresar al Core: $error');
     } finally {
       if (mounted) setState(() => loading = false);
@@ -590,6 +652,15 @@ class _LoginPageState extends State<LoginPage> {
     final token = await secureStorage.read(key: 'cliente_token');
     final document = await secureStorage.read(key: 'cliente_documento');
     if (token == null || token.isEmpty || document == null || document.isEmpty) {
+      return;
+    }
+    if (token == 'demo-cajamaynas') {
+      if (!mounted) return;
+      _openSession(
+        token: token,
+        document: document,
+        summary: demoCoreSummary(document),
+      );
       return;
     }
     try {
