@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
@@ -64,7 +63,11 @@ const coreBaseUrl = String.fromEnvironment(
   defaultValue: 'https://cajamaynassem14-production.up.railway.app',
 );
 const fallbackCoreBaseUrl = 'https://cajamaynassem14-production.up.railway.app';
-String get primaryCoreBaseUrl => kIsWeb ? fallbackCoreBaseUrl : coreBaseUrl;
+String get primaryCoreBaseUrl {
+  final configuredUrl = coreBaseUrl.trim();
+  if (configuredUrl.isNotEmpty) return configuredUrl;
+  return fallbackCoreBaseUrl;
+}
 
 final demoProfile = UserProfile(
   name: 'Miguel Ramirez',
@@ -560,7 +563,7 @@ class CoreApiClient {
     }
     final response = await http
         .post(Uri.parse(url), headers: headers, body: body)
-        .timeout(const Duration(seconds: 8));
+        .timeout(const Duration(seconds: 25));
     _ensureOk(response.statusCode, response.body);
     if (response.body.trim().isEmpty) return <String, dynamic>{};
     return Map<String, dynamic>.from(jsonDecode(response.body) as Map);
@@ -569,7 +572,7 @@ class CoreApiClient {
   Future<dynamic> _getJson(String url) async {
     final response = await http
         .get(Uri.parse(url))
-        .timeout(const Duration(seconds: 8));
+        .timeout(const Duration(seconds: 25));
     _ensureOk(response.statusCode, response.body);
     if (response.body.trim().isEmpty) return <String, dynamic>{};
     return jsonDecode(response.body);
@@ -1616,7 +1619,7 @@ class _CreditApplicationPageState extends State<CreditApplicationPage> {
                   MetricItem(
                     Icons.cloud_upload,
                     'Core',
-                    coreBaseUrl,
+                    primaryCoreBaseUrl,
                     AppColors.blue,
                   ),
                 ],

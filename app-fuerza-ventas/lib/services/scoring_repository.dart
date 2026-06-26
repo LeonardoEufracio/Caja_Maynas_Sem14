@@ -1,21 +1,8 @@
-import 'dart:convert';
 import 'dart:math';
 
 import '../supabase_config.dart';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
-
-const configuredCoreBaseUrl = String.fromEnvironment(
-  'CORE_BASE_URL',
-  defaultValue: 'https://cajamaynassem14-production.up.railway.app',
-);
-const fallbackCoreBaseUrl = 'https://cajamaynassem14-production.up.railway.app';
-
-String get coreBaseUrl {
-  if (configuredCoreBaseUrl.isNotEmpty) return configuredCoreBaseUrl;
-  return fallbackCoreBaseUrl;
-}
 
 class SalesDashboardData {
   const SalesDashboardData({
@@ -81,40 +68,40 @@ class PreapprovedClient {
   String get business => _text(profile, 'tipo_negocio', fallback: 'Negocio');
   String get district => _text(profile, 'distrito', fallback: 'Sin distrito');
   String get segment => _text(
-    credit,
-    'segmento',
-    fallback: _text(score, 'segmento_preliminar', fallback: 'PENDIENTE'),
-  );
+        credit,
+        'segmento',
+        fallback: _text(score, 'segmento_preliminar', fallback: 'PENDIENTE'),
+      );
   String get status => _text(credit, 'estado', fallback: 'preaprobado');
   String get visitStatus => _text(
-    assignment,
-    'estado_visita',
-    fallback: hasVisit ? 'visitado' : 'pendiente',
-  );
+        assignment,
+        'estado_visita',
+        fallback: hasVisit ? 'visitado' : 'pendiente',
+      );
   String get managementType =>
       _text(assignment, 'tipo_gestion', fallback: _managementTypeFromCredit());
   String get priority =>
       _text(assignment, 'prioridad', fallback: _priorityFromCredit());
   num get priorityScore => _number(
-    assignment,
-    'score_prioridad',
-    fallback: _priorityScoreFromCredit(),
-  );
+        assignment,
+        'score_prioridad',
+        fallback: _priorityScoreFromCredit(),
+      );
   num get scoreValue => _number(
-    credit,
-    'score_transaccional',
-    fallback: _number(score, 'score_transaccional'),
-  );
+        credit,
+        'score_transaccional',
+        fallback: _number(score, 'score_transaccional'),
+      );
   num get finalScore => _number(
-    credit,
-    'score_final',
-    fallback: scoreValue + _number(fieldFile, 'score_campo'),
-  );
+        credit,
+        'score_final',
+        fallback: scoreValue + _number(fieldFile, 'score_campo'),
+      );
   num get hypothesisAmount => _number(
-    credit,
-    'monto_hipotesis',
-    fallback: _number(score, 'monto_hipotesis'),
-  );
+        credit,
+        'monto_hipotesis',
+        fallback: _number(score, 'monto_hipotesis'),
+      );
   num get approvedAmount =>
       _number(credit, 'monto_aprobado', fallback: hypothesisAmount);
   num get lat => _number(profile, 'lat_negocio');
@@ -254,8 +241,7 @@ class FieldScoringInput {
       _ => 0,
     };
     final ptsActivos = activosHogar == 'al_menos_uno' ? 20 : 0;
-    final scoreCampo =
-        ptsAntiguedad +
+    final scoreCampo = ptsAntiguedad +
         ptsTenencia +
         ptsVentas +
         ptsGastos +
@@ -340,27 +326,27 @@ class FieldScoringResult {
   });
 
   factory FieldScoringResult.disqualified(String reason) => FieldScoringResult(
-    disqualified: true,
-    reason: reason,
-    ptsF1: 0,
-    ptsF2: 0,
-    ptsF3: 0,
-    ptsF4: 0,
-    scoreCampo: 0,
-    scoreFinal: 0,
-    segment: 'DESCALIFICADO',
-    maxAmount: 0,
-    suggestedTerm: 0,
-    payment: 0,
-    ptsAntiguedad: 0,
-    ptsTenencia: 0,
-    ptsVentas: 0,
-    ptsGastos: 0,
-    ptsDeuda: 0,
-    ptsPandero: 0,
-    ptsStock: 0,
-    ptsActivos: 0,
-  );
+        disqualified: true,
+        reason: reason,
+        ptsF1: 0,
+        ptsF2: 0,
+        ptsF3: 0,
+        ptsF4: 0,
+        scoreCampo: 0,
+        scoreFinal: 0,
+        segment: 'DESCALIFICADO',
+        maxAmount: 0,
+        suggestedTerm: 0,
+        payment: 0,
+        ptsAntiguedad: 0,
+        ptsTenencia: 0,
+        ptsVentas: 0,
+        ptsGastos: 0,
+        ptsDeuda: 0,
+        ptsPandero: 0,
+        ptsStock: 0,
+        ptsActivos: 0,
+      );
 
   final bool disqualified;
   final String reason;
@@ -386,11 +372,6 @@ class FieldScoringResult {
 
 class ScoringRepository {
   Future<SalesDashboardData> loadDashboard({bool forceDemo = false}) async {
-    if (!forceDemo) {
-      final coreData = await _tryLoadCoreDashboard();
-      if (coreData != null) return coreData;
-    }
-
     if (forceDemo || !SupabaseConfig.isConfigured) {
       return _demoData;
     }
@@ -430,22 +411,22 @@ class ScoringRepository {
         userIds.isEmpty
             ? Future.value(<Map<String, dynamic>>[])
             : client
-                  .from('perfiles_clientes')
-                  .select()
-                  .inFilter('user_id', userIds),
+                .from('perfiles_clientes')
+                .select()
+                .inFilter('user_id', userIds),
         scoreIds.isEmpty
             ? Future.value(<Map<String, dynamic>>[])
             : client
-                  .from('scores_transaccionales')
-                  .select()
-                  .inFilter('id', scoreIds),
+                .from('scores_transaccionales')
+                .select()
+                .inFilter('id', scoreIds),
         userIds.isEmpty
             ? Future.value(<Map<String, dynamic>>[])
             : client
-                  .from('fichas_campo')
-                  .select()
-                  .inFilter('user_id', userIds)
-                  .order('fecha_visita', ascending: false),
+                .from('fichas_campo')
+                .select()
+                .inFilter('user_id', userIds)
+                .order('fecha_visita', ascending: false),
       ]);
 
       final profiles = _indexBy(_asList(related[0]), 'user_id');
@@ -532,8 +513,7 @@ class ScoringRepository {
         bureau: bureau,
         alerts: alerts,
         collections: collections,
-        pendingSync:
-            pendingRows.length +
+        pendingSync: pendingRows.length +
             requests.where((item) => item['pendiente_sync'] == true).length,
         lastSyncLabel: 'hoy ${_timeLabel(DateTime.now())}',
         role: roleRows.isEmpty
@@ -547,159 +527,6 @@ class ScoringRepository {
     }
   }
 
-  Future<SalesDashboardData?> _tryLoadCoreDashboard() async {
-    try {
-      final rows = await _getCoreList('/cartera/demo');
-      if (rows.isEmpty) return null;
-      final requests = await _optionalList(_getCoreList('/solicitudes/demo'));
-      final history = await _optionalList(_getCoreList('/cartera/demo/historial'));
-      final portfolio = rows.map(_clientFromCoreCartera).toList()
-        ..sort((a, b) {
-          final statusCompare = _visitOrder(a.visitStatus).compareTo(
-            _visitOrder(b.visitStatus),
-          );
-          if (statusCompare != 0) return statusCompare;
-          return b.priorityScore.compareTo(a.priorityScore);
-        });
-      return SalesDashboardData(
-        advisor: _advisorFromSession('alumno1@example.com'),
-        portfolio: portfolio,
-        agencies: const [],
-        advisors: const [],
-        kpis: [
-          {
-            'agencia': 'Core FastAPI 8003',
-            'visitas_totales': portfolio.length,
-            'desembolsos': portfolio
-                .where((client) => client.status == 'desembolsado')
-                .length,
-            'monto_desembolsado': portfolio.fold<num>(
-              0,
-              (sum, client) => sum + client.approvedAmount,
-            ),
-            'mora_30_pct': 0,
-            'tasa_conversion_pct': portfolio.isEmpty ? 0 : 100,
-          },
-        ],
-        history: history,
-        requests: requests.isEmpty
-            ? portfolio
-                .map(
-                  (client) => {
-                    'numero_expediente': _text(
-                      client.credit,
-                      'numero_expediente',
-                      fallback: client.id,
-                    ),
-                    'cliente_nombre': client.fullName,
-                    'estado': client.status,
-                    'monto_solicitado': client.hypothesisAmount,
-                    'monto_aprobado': client.approvedAmount,
-                    'plazo_meses': _number(
-                      client.credit,
-                      'plazo_meses',
-                      fallback: 12,
-                    ),
-                    'created_at': DateTime.now().toIso8601String(),
-                  },
-                )
-                .toList()
-            : requests,
-        bureau: const [],
-        alerts: const [],
-        collections: const [],
-        pendingSync: 0,
-        lastSyncLabel: 'core ${_timeLabel(DateTime.now())}',
-        role: 'Operador',
-        online: true,
-        isDemo: false,
-      );
-    } catch (_) {
-      return null;
-    }
-  }
-
-  PreapprovedClient _clientFromCoreCartera(Map<String, dynamic> row) {
-    final document = _text(row, 'documento', fallback: '00000000');
-    final clienteId = _text(row, 'cliente_id', fallback: 'core-cliente');
-    final fullName = _text(row, 'cliente_nombre', fallback: 'Cliente Core');
-    final parts = fullName.split(' ');
-    final name = parts.isEmpty ? fullName : parts.first;
-    final lastName = parts.length <= 1 ? '' : parts.skip(1).join(' ');
-    final amount = _number(row, 'monto_credito');
-    final priorityScore = _number(row, 'score_prioridad', fallback: 40);
-    final visitStatus = _visitStatus(row);
-    final segment = amount >= 8000
-        ? 'PREMIER'
-        : (amount >= 3000 ? 'ESTANDAR' : 'BASICO');
-    return PreapprovedClient(
-      credit: {
-        'id': _text(row, 'id', fallback: clienteId),
-        'user_id': clienteId,
-        'score_id': '$clienteId-core-score',
-        'numero_expediente': _text(
-          row,
-          'numero_expediente',
-          fallback: _text(row, 'id', fallback: clienteId),
-        ),
-        'segmento': segment,
-        'score_transaccional': 500 + priorityScore,
-        'score_campo': 0,
-        'score_final': 500 + priorityScore,
-        'monto_hipotesis': amount,
-        'monto_aprobado': amount,
-        'plazo_meses': 12,
-        'cuota_mensual': amount * paymentFactor(0.4392, 12),
-        'estado': 'enviado',
-        'fecha_preaprobacion': DateTime.now().toIso8601String(),
-        'dias_mora': 0,
-        'estado_pago': 'al_dia',
-      },
-      profile: {
-        'user_id': clienteId,
-        'nombres': name,
-        'apellidos': lastName,
-        'dni': document,
-        'telefono': '',
-        'distrito': 'Por visitar',
-        'departamento': 'Junin',
-        'tipo_negocio': 'Microempresa',
-        'nombre_negocio': 'Negocio de $name',
-        'direccion_negocio': 'Direccion pendiente',
-        'lat_negocio': _number(row, 'lat', fallback: -12.065),
-        'lng_negocio': _number(row, 'lng', fallback: -75.205),
-        'antiguedad_negocio_meses': 48,
-        'tenencia_local': 'alquilado_con_contrato',
-        'num_entidades_sbs': 1,
-        'calificacion_sbs': 'Normal',
-      },
-      score: {
-        'id': '$clienteId-core-score',
-        'user_id': clienteId,
-        'score_transaccional': 500 + priorityScore,
-        'segmento_preliminar': segment,
-        'monto_hipotesis': amount,
-        'ingreso_promedio_ref': 3000,
-        'cuota_max_ref': 900,
-      },
-      fieldFile: const {},
-      assignment: {
-        'id': _text(row, 'id'),
-        'source': 'core',
-        'cliente_user_id': clienteId,
-        'tipo_gestion': _text(
-          row,
-          'tipo_gestion',
-          fallback: 'NUEVA_SOLICITUD',
-        ),
-        'prioridad': _text(row, 'prioridad', fallback: 'normal'),
-        'score_prioridad': priorityScore,
-        'estado_visita': visitStatus,
-        'fecha_asignacion': DateTime.now().toIso8601String(),
-      },
-    );
-  }
-
   Future<void> submitFieldFile({
     required PreapprovedClient client,
     required FieldScoringInput input,
@@ -707,39 +534,12 @@ class ScoringRepository {
     required String advisorName,
     required String agency,
   }) async {
-    if (_text(client.assignment, 'source') == 'core') {
-      final assignmentId = _text(client.assignment, 'id');
-      if (assignmentId.isEmpty) return;
-      await _postCore(
-        '/cartera/demo/$assignmentId/comite',
-        {
-          'asesor_nombre': advisorName,
-          'agencia': agency,
-          'score_transaccional': client.scoreValue.toInt(),
-          'score_campo': result.scoreCampo,
-          'score_final': result.scoreFinal,
-          'segmento': result.segment,
-          'monto_propuesto': result.disqualified
-              ? 0
-              : min(input.montoPropuesto.toDouble(), result.maxAmount),
-          'plazo_meses': input.plazoMeses,
-          'cuota_estimada': result.payment,
-          'recomendacion': result.disqualified
-              ? 'rechazar'
-              : input.recomendacion,
-          'observaciones': input.observaciones,
-        },
-      );
-      return;
-    }
-
     if (!SupabaseConfig.isConfigured) return;
 
     final supabase = Supabase.instance.client;
     final today = DateTime.now().toIso8601String().substring(0, 10);
-    final estadoCredito = result.disqualified
-        ? 'rechazado'
-        : 'visita_realizada';
+    final estadoCredito =
+        result.disqualified ? 'rechazado' : 'visita_realizada';
     final ventasMensuales = switch (input.ventasDiariasRango) {
       'mas_300' => 10500,
       '151_a_300' => 5720,
@@ -793,17 +593,14 @@ class ScoringRepository {
           : min(input.montoPropuesto.toDouble(), result.maxAmount),
       'plazo_propuesto_meses': input.plazoMeses,
       'cuota_estimada': result.payment,
-      'recomendacion_asesor': result.disqualified
-          ? 'rechazar'
-          : input.recomendacion,
+      'recomendacion_asesor':
+          result.disqualified ? 'rechazar' : input.recomendacion,
       'obs_finales': input.observaciones,
       'estado_ficha': 'completada',
     });
 
-    await supabase
-        .from('creditos_preaprobados')
-        .update({'estado': estadoCredito, 'fecha_visita': today})
-        .eq('id', client.id);
+    await supabase.from('creditos_preaprobados').update(
+        {'estado': estadoCredito, 'fecha_visita': today}).eq('id', client.id);
   }
 
   Future<bool> updateBusinessLocation({
@@ -817,17 +614,14 @@ class ScoringRepository {
     }
     final supabase = Supabase.instance.client;
 
-    await supabase
-        .from('perfiles_clientes')
-        .update({
-          'lat_negocio': latitude,
-          'lng_negocio': longitude,
-          'direccion_negocio': address.isEmpty
-              ? _text(client.profile, 'direccion_negocio')
-              : address,
-          'updated_at': DateTime.now().toIso8601String(),
-        })
-        .eq('user_id', client.userId);
+    await supabase.from('perfiles_clientes').update({
+      'lat_negocio': latitude,
+      'lng_negocio': longitude,
+      'direccion_negocio': address.isEmpty
+          ? _text(client.profile, 'direccion_negocio')
+          : address,
+      'updated_at': DateTime.now().toIso8601String(),
+    }).eq('user_id', client.userId);
     return true;
   }
 
@@ -836,38 +630,20 @@ class ScoringRepository {
     required String result,
     required String observation,
   }) async {
-    if (_text(client.assignment, 'source') == 'core') {
-      final assignmentId = _text(client.assignment, 'id');
-      if (assignmentId.isEmpty) return;
-      await _postCore(
-        '/cartera/demo/$assignmentId/visita',
-        {
-          'resultado': result,
-          'observacion': observation,
-          'lat': client.lat,
-          'lng': client.lng,
-        },
-      );
-      return;
-    }
-
     if (!SupabaseConfig.isConfigured) return;
     final supabase = Supabase.instance.client;
     final assignmentId = _text(client.assignment, 'id');
     if (assignmentId.isEmpty) return;
 
-    await supabase
-        .from('cartera_diaria')
-        .update({
-          'estado_visita': result == 'visitado' ? 'visitado' : result,
-          'resultado_visita': result,
-          'observacion_visita': observation,
-          'timestamp_visita': DateTime.now().toIso8601String(),
-          'lat_visita': client.lat,
-          'lng_visita': client.lng,
-          'updated_at': DateTime.now().toIso8601String(),
-        })
-        .eq('id', assignmentId);
+    await supabase.from('cartera_diaria').update({
+      'estado_visita': result == 'visitado' ? 'visitado' : result,
+      'resultado_visita': result,
+      'observacion_visita': observation,
+      'timestamp_visita': DateTime.now().toIso8601String(),
+      'lat_visita': client.lat,
+      'lng_visita': client.lng,
+      'updated_at': DateTime.now().toIso8601String(),
+    }).eq('id', assignmentId);
   }
 
   Future<void> submitCreditApplication({
@@ -926,9 +702,7 @@ class ScoringRepository {
     final path =
         '${client.userId}/$type-${DateTime.now().millisecondsSinceEpoch}.$safeExtension';
 
-    await supabase.storage
-        .from('documentos-credito')
-        .uploadBinary(
+    await supabase.storage.from('documentos-credito').uploadBinary(
           path,
           bytes,
           fileOptions: FileOptions(
@@ -955,9 +729,7 @@ class ScoringRepository {
     final supabase = Supabase.instance.client;
     final path =
         'pdfs/$expediente-${DateTime.now().millisecondsSinceEpoch}.pdf';
-    await supabase.storage
-        .from('documentos-credito')
-        .uploadBinary(
+    await supabase.storage.from('documentos-credito').uploadBinary(
           path,
           bytes,
           fileOptions: const FileOptions(
@@ -985,13 +757,13 @@ class ScoringRepository {
   }
 
   static Map<String, dynamic> _advisorFromSession(String? email) => {
-    'id': 1,
-    'nombre_completo': 'Asesor Fuerza de Ventas',
-    'email': email ?? 'alumno1@example.com',
-    'agencia': 'Agencia Huancayo Centro',
-    'nivel': 'Senior II',
-    'codigo': 'AG-001-01',
-  };
+        'id': 1,
+        'nombre_completo': 'Asesor Fuerza de Ventas',
+        'email': email ?? 'alumno1@example.com',
+        'agencia': 'Agencia Huancayo Centro',
+        'nivel': 'Senior II',
+        'codigo': 'AG-001-01',
+      };
 
   static Map<String, Map<String, dynamic>> _indexBy(
     List<Map<String, dynamic>> rows,
@@ -1008,48 +780,6 @@ class ScoringRepository {
     } catch (_) {
       return const <Map<String, dynamic>>[];
     }
-  }
-
-  static Future<List<Map<String, dynamic>>> _getCoreList(String path) async {
-    try {
-      return _asList(await _coreRequest('GET', path));
-    } catch (_) {
-      if (coreBaseUrl == fallbackCoreBaseUrl) rethrow;
-      return _asList(await _coreRequest('GET', path, fallback: true));
-    }
-  }
-
-  static Future<void> _postCore(String path, Map<String, dynamic> body) async {
-    try {
-      await _coreRequest('POST', path, body: body);
-    } catch (_) {
-      if (coreBaseUrl == fallbackCoreBaseUrl) rethrow;
-      await _coreRequest('POST', path, body: body, fallback: true);
-    }
-  }
-
-  static Future<dynamic> _coreRequest(
-    String method,
-    String path, {
-    Map<String, dynamic>? body,
-    bool fallback = false,
-  }) async {
-    final baseUrl = fallback ? fallbackCoreBaseUrl : coreBaseUrl;
-    final uri = Uri.parse('$baseUrl$path');
-    final response = method == 'POST'
-        ? await http
-            .post(
-              uri,
-              headers: const {'Content-Type': 'application/json'},
-              body: jsonEncode(body ?? const <String, dynamic>{}),
-            )
-            .timeout(const Duration(seconds: 8))
-        : await http.get(uri).timeout(const Duration(seconds: 8));
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception('Core ${response.statusCode}: ${response.body}');
-    }
-    if (response.body.trim().isEmpty) return null;
-    return jsonDecode(response.body);
   }
 
   static Map<String, Map<String, dynamic>> _latestByUser(
@@ -1351,17 +1081,6 @@ String _text(Map<String, dynamic> map, String key, {String fallback = ''}) {
   final text = value.toString().trim();
   return text.isEmpty ? fallback : text;
 }
-
-String _visitStatus(Map<String, dynamic> row) {
-  final raw = _text(row, 'estado_visita', fallback: 'pendiente')
-      .toLowerCase()
-      .replaceAll(' ', '_');
-  if (raw.contains('pend')) return 'pendiente';
-  if (raw.contains('visit')) return 'visitado';
-  return raw.isEmpty ? 'pendiente' : raw;
-}
-
-int _visitOrder(String status) => status == 'pendiente' ? 0 : 1;
 
 num _number(Map<String, dynamic> map, String key, {num fallback = 0}) {
   final value = map[key];

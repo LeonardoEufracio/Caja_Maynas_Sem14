@@ -4,9 +4,7 @@ export const TOKEN_KEY = 'cm_token'
 export const USER_KEY = 'cm_user'
 
 const defaultBaseURL =
-  import.meta.env.MODE === 'github'
-    ? 'https://cajamaynassem14-production.up.railway.app'
-    : 'http://localhost:8003'
+  'https://cajamaynassem14-production.up.railway.app'
 
 const baseURL = import.meta.env.VITE_BASE_URL || defaultBaseURL
 
